@@ -1,0 +1,20 @@
+
+output "pyth_oracle_contract" {
+    description = "Pyth oracle contract_id"
+    value = action.pyth_oracle_deployment.contract_id
+}
+
+output "pyth_storage_contract" {
+    description = "pyth-storage-contract"
+    value = action.pyth_store_deployment.contract_id
+}
+
+output "pyth_decoder_contract" {
+    description = "pyth-decoder-contract"
+    value = action.pyth_pnau_decoder_deployment.contract_id
+}
+
+output "wormhole_core_contract" {
+    description = "wormhole-core-contract"
+    value = action.wormhole_core_deployment.contract_id
+}

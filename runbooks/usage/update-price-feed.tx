@@ -1,0 +1,61 @@
+runtime "addon::stacks" {
+  defaults {
+    network_id = env.stacks_network_id
+    rpc_api_url = env.stacks_api_url
+  }
+}
+
+// wallet "operator" "stacks::connect" {
+//   expected_address = "ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNCc"
+// }
+
+wallet "operator" "stacks::mnemonic" {
+    mnemonic = env.operator_mnemonic
+}
+
+input "price_feed_id" {
+    description = "Price Feed to update (default: BTC)"
+    default = "ec7a775f46379b5e943c3526b1c8d54cd49749176b0b98e02dde68d1bd335c17"
+}
+
+action "fetch_hermes_price" "std::send_http_request" {
+    description = "Retrieve a Pyth Network Accumulator Update (PNAU) price update from Pyth Hermes web service"
+    // The URL for the request. Supported schemes are http and https.
+    url = "https://hermes.pyth.network/api/latest_price_feeds?ids[]=${input.price_feed_id}&binary=true"
+    // A map of request header field names and values.
+    request_headers = {
+        Accept = "application/json"
+    }
+}
+
+input "pyth_hermes_pnau_update" {
+    description = "Pyth Network Accumulator Update (PNAU) containing the price update"
+    value = base64_decode(index(jq(action.fetch_hermes_price.response_body, ".[0].vaa"), 0))
+}
+
+action "update_price" "stacks::send_contract_call" {
+    // Description of the transaction
+    description = "Verify and Update Price Feed"
+    // The address and identifier of the contract to invoke.
+    contract_id = env.pyth_oracle_contract
+    // The contract method to invoke.
+    function_name = "verify-and-update-price-feeds"
+    // The function arguments for the contract call.
+    function_args = [
+        input.pyth_hermes_pnau_update,
+        {
+            "pyth-storage-contract": stacks::cv_principal(env.pyth_storage_contract),
+            "pyth-decoder-contract": stacks::cv_principal(env.pyth_decoder_contract),
+            "wormhole-core-contract": stacks::cv_principal(env.wormhole_core_contract),
+        }
+    ]
+    // A reference to a wallet construct, which will be used to sign the transaction payload.
+    signer = wallet.operator
+    // The post conditions to include to the transaction.
+    // post_conditions = 
+}
+
+output "price_update" {
+    description = "Price feed updated"
+    value = action.update_price.result
+}

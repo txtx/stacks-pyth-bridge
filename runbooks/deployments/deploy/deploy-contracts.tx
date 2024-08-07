@@ -1,0 +1,71 @@
+runtime "addon::stacks" {
+    defaults {
+        network_id = env.stacks_network_id
+        rpc_api_url = env.stacks_api_url
+    }
+}
+
+wallet "operator" "stacks::mnemonic" {
+    mnemonic = env.operator_mnemonic
+}
+
+action "wormhole_traits_deployment" "stacks::deploy_contract" {
+    description = "Deploy wormhole-traits contract"
+    contract = stacks::get_contract_from_clarinet_project("wormhole-traits", env.clarinet_manifest_path)
+    signer = wallet.operator
+    confirmations = 1
+}
+
+action "pyth_trait_deployment" "stacks::deploy_contract" {
+    description = "Deploy pyth-traits contract"
+    contract = stacks::get_contract_from_clarinet_project("pyth-traits", env.clarinet_manifest_path)
+    signer = wallet.operator
+    depends_on = [action.wormhole_core_deployment]
+}
+
+action "pyth_governance_deployment" "stacks::deploy_contract" {
+    description = "Deploy pyth-governance contract"
+    contract = stacks::get_contract_from_clarinet_project("pyth-governance", env.clarinet_manifest_path)
+    signer = wallet.operator
+    depends_on = [action.pyth_trait_deployment, action.hk_cursor_deployment]
+}
+
+action "pyth_oracle_deployment" "stacks::deploy_contract" {
+    description = "Deploy pyth-oracle contract"
+    contract = stacks::get_contract_from_clarinet_project("pyth-oracle", env.clarinet_manifest_path)
+    signer = wallet.operator
+    depends_on = [action.pyth_trait_deployment, action.pyth_governance_deployment]
+}
+
+action "pyth_pnau_decoder_deployment" "stacks::deploy_contract" {
+    description = "Deploy pyth-pnau-decoder contract"
+    contract = stacks::get_contract_from_clarinet_project("pyth-pnau-decoder", env.clarinet_manifest_path)
+    signer = wallet.operator
+    depends_on = [action.pyth_trait_deployment, action.hk_merkle_tree_keccak160_deployment, action.pyth_governance_deployment]
+}
+
+action "pyth_store_deployment" "stacks::deploy_contract" {
+    description = "Deploy pyth-store contract"
+    contract = stacks::get_contract_from_clarinet_project("pyth-store", env.clarinet_manifest_path)
+    signer = wallet.operator
+    depends_on = [action.pyth_trait_deployment, action.pyth_governance_deployment]
+}
+
+action "wormhole_core_deployment" "stacks::deploy_contract" {
+    description = "Deploy wormhole-core contract"
+    contract = stacks::get_contract_from_clarinet_project("wormhole-core", env.clarinet_manifest_path)
+    signer = wallet.operator
+    depends_on = [action.wormhole_traits_deployment, action.hk_cursor_deployment]
+}
+
+action "hk_cursor_deployment" "stacks::deploy_contract" {
+    description = "Deploy hk-cursor contract"
+    contract = stacks::get_contract_from_clarinet_project("hk-cursor", env.clarinet_manifest_path)
+    signer = wallet.operator
+}
+
+action "hk_merkle_tree_keccak160_deployment" "stacks::deploy_contract" {
+    description = "Deploy hk-merkle-tree-keccak160 contract"
+    contract = stacks::get_contract_from_clarinet_project("hk-merkle-tree-keccak160", env.clarinet_manifest_path)
+    signer = wallet.operator
+}
