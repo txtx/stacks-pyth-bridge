@@ -3,13 +3,13 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { wormhole } from "../wormhole/helpers";
 import { pyth } from "./helpers";
 
-const pythOracleContractName = "pyth-oracle-v2";
-const pythDecoderPnauContractName = "pyth-pnau-decoder-v1";
-const pythGovernanceContractName = "pyth-governance-v1";
-const pythStorageContractName = "pyth-store-v1";
-const wormholeCoreContractName = "wormhole-core-v2";
+const pythOracleContractName = "pyth-oracle";
+const pythDecoderPnauContractName = "pyth-pnau-decoder";
+const pythGovernanceContractName = "pyth-governance";
+const pythStorageContractName = "pyth-store";
+const wormholeCoreContractName = "wormhole-core";
 
-describe("pyth-pnau-decoder-v1::decode-and-verify-price-feeds success", () => {
+describe("pyth-pnau-decoder::decode-and-verify-price-feeds success", () => {
   const accounts = simnet.getAccounts();
   const sender = accounts.get("wallet_1")!;
   const guardianSet = wormhole.generateGuardianSetKeychain(19);
@@ -130,7 +130,7 @@ describe("pyth-pnau-decoder-v1::decode-and-verify-price-feeds success", () => {
   });
 });
 
-describe("pyth-pnau-decoder-v1::decode-and-verify-price-feeds failures", () => {
+describe("pyth-pnau-decoder::decode-and-verify-price-feeds failures", () => {
   const accounts = simnet.getAccounts();
   const sender = accounts.get("wallet_1")!;
   const guardianSet = wormhole.generateGuardianSetKeychain(19);

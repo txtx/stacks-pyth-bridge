@@ -2,18 +2,18 @@ import { Cl, ClarityType } from "@stacks/transactions";
 import { beforeEach, describe, expect, it } from "vitest";
 import { wormhole } from "../wormhole/helpers";
 import { pyth } from "./helpers";
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { hexToBytes } from "@noble/hashes/utils";
 import { ParsedTransactionResult } from "@hirosystems/clarinet-sdk";
 import { ptgmTestnetVaas } from "./fixtures";
 
-const pythOracleContractName = "pyth-oracle-v2";
-const pythStorageContractName = "pyth-store-v1";
-const pythDecoderPnauContractName = "pyth-pnau-decoder-v1";
-const pythGovernanceContractName = "pyth-governance-v1";
-const wormholeCoreContractName = "wormhole-core-v2";
+const pythOracleContractName = "pyth-oracle";
+const pythStorageContractName = "pyth-store";
+const pythDecoderPnauContractName = "pyth-pnau-decoder";
+const pythGovernanceContractName = "pyth-governance";
+const wormholeCoreContractName = "wormhole-core";
 const initialFeeRecipient = "ST3CRXBDXQ2N5P7E25Q39MEX1HSMRDSEAP1JST19D";
 
-describe("pyth-governance-v1::update-fee-value mainnet VAAs", () => {
+describe("pyth-governance::update-fee-value mainnet VAAs", () => {
   const accounts = simnet.getAccounts();
   const sender = accounts.get("wallet_1")!;
 
@@ -72,7 +72,7 @@ describe("pyth-governance-v1::update-fee-value mainnet VAAs", () => {
 });
 
 
-describe("pyth-governance-v1::update-fee-value", () => {
+describe("pyth-governance::update-fee-value", () => {
   const accounts = simnet.getAccounts();
   const sender = accounts.get("wallet_1")!;
   const guardianSet = wormhole.generateGuardianSetKeychain(19);
@@ -158,7 +158,7 @@ describe("pyth-governance-v1::update-fee-value", () => {
   });
 });
 
-describe("pyth-governance-v1::update-fee-recipient", () => {
+describe("pyth-governance::update-fee-recipient", () => {
   const accounts = simnet.getAccounts();
   const sender = accounts.get("wallet_1")!;
   const guardianSet = wormhole.generateGuardianSetKeychain(19);
@@ -237,14 +237,14 @@ describe("pyth-governance-v1::update-fee-recipient", () => {
   });
 });
 
-describe("pyth-governance-v1::update-wormhole-core-contract", () => {
+describe("pyth-governance::update-wormhole-core-contract", () => {
   const accounts = simnet.getAccounts();
   const sender = accounts.get("wallet_1")!;
   const deployer = accounts.get("deployer")!;
   const guardianSet = wormhole.generateGuardianSetKeychain(19);
   let updateWormholeContract = {
     address: "ST2CY5V39NHDPWSXMW9QDT3HC3GD6Q6XX4CFRK9AG",
-    contractName: "wormhole-core-v3",
+    contractName: "wormhole-core-v2",
   };
   let ptgmVaaPayload = pyth.buildPtgmVaaPayload({ updateWormholeContract });
 
@@ -353,7 +353,7 @@ describe("pyth-governance-v1::update-wormhole-core-contract", () => {
   });
 });
 
-describe("pyth-governance-v1::update-pyth-decoder-contract", () => {
+describe("pyth-governance::update-pyth-decoder-contract", () => {
   const accounts = simnet.getAccounts();
   const sender = accounts.get("wallet_1")!;
   const deployer = accounts.get("deployer")!;
@@ -482,7 +482,7 @@ describe("pyth-governance-v1::update-pyth-decoder-contract", () => {
   });
 });
 
-describe("pyth-governance-v1::update-pyth-store-contract", () => {
+describe("pyth-governance::update-pyth-store-contract", () => {
   const accounts = simnet.getAccounts();
   const sender = accounts.get("wallet_1")!;
   const deployer = accounts.get("deployer")!;
@@ -609,7 +609,7 @@ describe("pyth-governance-v1::update-pyth-store-contract", () => {
   });
 });
 
-describe("pyth-governance-v1::update-pyth-oracle-contract", () => {
+describe("pyth-governance::update-pyth-oracle-contract", () => {
   const accounts = simnet.getAccounts();
   const sender = accounts.get("wallet_1")!;
   const deployer = accounts.get("deployer")!;
@@ -715,7 +715,7 @@ describe("pyth-governance-v1::update-pyth-oracle-contract", () => {
   });
 });
 
-describe("pyth-governance-v1::update-prices-data-sources", () => {
+describe("pyth-governance::update-prices-data-sources", () => {
   const accounts = simnet.getAccounts();
   const sender = accounts.get("wallet_1")!;
   const guardianSet = wormhole.generateGuardianSetKeychain(19);
@@ -803,7 +803,7 @@ describe("pyth-governance-v1::update-prices-data-sources", () => {
   });
 });
 
-describe("pyth-governance-v1::update-governance-data-source", () => {
+describe("pyth-governance::update-governance-data-source", () => {
   const accounts = simnet.getAccounts();
   const sender = accounts.get("wallet_1")!;
   const guardianSet = wormhole.generateGuardianSetKeychain(19);
@@ -1047,7 +1047,7 @@ describe("pyth-governance-v1::update-governance-data-source", () => {
   });
 });
 
-describe("pyth-governance-v1::update-stale-price-threshold", () => {
+describe("pyth-governance::update-stale-price-threshold", () => {
   const accounts = simnet.getAccounts();
   const sender = accounts.get("wallet_1")!;
   const guardianSet = wormhole.generateGuardianSetKeychain(19);
