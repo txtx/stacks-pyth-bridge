@@ -3,10 +3,10 @@
 ;; Check for latest version: https://github.com/hirosystems/stacks-pyth-bridge#latest-version
 ;; Report an issue: https://github.com/hirosystems/stacks-pyth-bridge/issues
 
-(use-trait pyth-proxy-trait .pyth-traits-v1.proxy-trait)
-(use-trait pyth-decoder-trait .pyth-traits-v1.decoder-trait)
-(use-trait pyth-storage-trait .pyth-traits-v1.storage-trait)
-(use-trait wormhole-core-trait .wormhole-traits-v1.core-trait)
+(use-trait pyth-proxy-trait .pyth-traits.proxy-trait)
+(use-trait pyth-decoder-trait .pyth-traits.decoder-trait)
+(use-trait pyth-storage-trait .pyth-traits.storage-trait)
+(use-trait wormhole-core-trait .wormhole-traits.core-trait)
 
 (define-constant PTGM_MAGIC 0x5054474d) ;; 'PTGM': Pyth Governance Message
 
@@ -72,10 +72,10 @@
   pyth-storage-contract: principal,
   wormhole-core-contract: principal
 } { 
-    pyth-oracle-contract: .pyth-oracle-v2,
-    pyth-decoder-contract: .pyth-pnau-decoder-v1, 
-    pyth-storage-contract: .pyth-store-v1,
-    wormhole-core-contract: .wormhole-core-v2
+    pyth-oracle-contract: .pyth-oracle,
+    pyth-decoder-contract: .pyth-pnau-decoder, 
+    pyth-storage-contract: .pyth-store,
+    wormhole-core-contract: .wormhole-core
 })
 
 (define-read-only (check-execution-flow 
@@ -349,15 +349,15 @@
     (ok true)))
 
 (define-private (parse-and-verify-ptgm (ptgm-bytes (buff 8192)) (sequence uint))
-  (let ((cursor-magic (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-buff-4 { bytes: ptgm-bytes, pos: u0 }) 
+  (let ((cursor-magic (unwrap! (contract-call? .hk-cursor read-buff-4 { bytes: ptgm-bytes, pos: u0 }) 
           ERR_INVALID_PTGM))
-        (cursor-module (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-buff-1 (get next cursor-magic)) 
+        (cursor-module (unwrap! (contract-call? .hk-cursor read-buff-1 (get next cursor-magic)) 
           ERR_INVALID_PTGM))
-        (cursor-action (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-buff-1 (get next cursor-module)) 
+        (cursor-action (unwrap! (contract-call? .hk-cursor read-buff-1 (get next cursor-module)) 
           ERR_INVALID_PTGM))
-        (cursor-target-chain-id (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-buff-2 (get next cursor-action)) 
+        (cursor-target-chain-id (unwrap! (contract-call? .hk-cursor read-buff-2 (get next cursor-action)) 
           ERR_INVALID_PTGM))
-        (cursor-body (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-buff-8192-max (get next cursor-target-chain-id) none)
+        (cursor-body (unwrap! (contract-call? .hk-cursor read-buff-8192-max (get next cursor-target-chain-id) none)
           ERR_INVALID_PTGM)))
     ;; Check magic bytes
     (asserts! (is-eq (get value cursor-magic) PTGM_MAGIC) ERR_INVALID_PTGM)
@@ -378,10 +378,10 @@
     })))
 
 (define-private (parse-and-verify-fee-value (ptgm-body (buff 8192)))
-  (let ((cursor-ptgm-body (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 new ptgm-body none))
-        (cursor-mantissa (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-64 (get next cursor-ptgm-body)) 
+  (let ((cursor-ptgm-body (contract-call? .hk-cursor new ptgm-body none))
+        (cursor-mantissa (unwrap! (contract-call? .hk-cursor read-uint-64 (get next cursor-ptgm-body)) 
           ERR_INVALID_ACTION_PAYLOAD))
-        (cursor-exponent (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-64 (get next cursor-mantissa)) 
+        (cursor-exponent (unwrap! (contract-call? .hk-cursor read-uint-64 (get next cursor-mantissa)) 
           ERR_INVALID_ACTION_PAYLOAD)))
     (ok { 
       mantissa: (get value cursor-mantissa), 
@@ -389,16 +389,16 @@
     })))
 
 (define-private (parse-and-verify-stale-price-threshold (ptgm-body (buff 8192)))
-  (let ((cursor-ptgm-body (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 new ptgm-body none))
-        (cursor-stale-price-threshold (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-64 (get next cursor-ptgm-body)) 
+  (let ((cursor-ptgm-body (contract-call? .hk-cursor new ptgm-body none))
+        (cursor-stale-price-threshold (unwrap! (contract-call? .hk-cursor read-uint-64 (get next cursor-ptgm-body)) 
           ERR_INVALID_ACTION_PAYLOAD)))
     (ok (get value cursor-stale-price-threshold))))
 
 (define-private (parse-and-verify-governance-data-source (ptgm-body (buff 8192)))
-  (let ((cursor-ptgm-body (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 new ptgm-body none))
-        (cursor-emitter-chain (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-16 (get next cursor-ptgm-body))
+  (let ((cursor-ptgm-body (contract-call? .hk-cursor new ptgm-body none))
+        (cursor-emitter-chain (unwrap! (contract-call? .hk-cursor read-uint-16 (get next cursor-ptgm-body))
           ERR_INVALID_ACTION_PAYLOAD))
-        (cursor-emitter-address (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-buff-32 (get next cursor-emitter-chain))
+        (cursor-emitter-address (unwrap! (contract-call? .hk-cursor read-buff-32 (get next cursor-emitter-chain))
           ERR_INVALID_ACTION_PAYLOAD)))
     (ok { 
       emitter-chain: (get value cursor-emitter-chain), 
@@ -406,16 +406,16 @@
     })))
 
 (define-private (parse-principal (ptgm-body (buff 8192)))
-  (let ((cursor-ptgm-body (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 new ptgm-body none))
-        (cursor-principal-len (try! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-8 (get next cursor-ptgm-body))))
-        (principal-bytes (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 slice (get next cursor-principal-len) (some (get value cursor-principal-len))))
+  (let ((cursor-ptgm-body (contract-call? .hk-cursor new ptgm-body none))
+        (cursor-principal-len (try! (contract-call? .hk-cursor read-uint-8 (get next cursor-ptgm-body))))
+        (principal-bytes (contract-call? .hk-cursor slice (get next cursor-principal-len) (some (get value cursor-principal-len))))
         (new-principal (unwrap! (from-consensus-buff? principal principal-bytes) ERR_UNEXPECTED_ACTION_PAYLOAD)))
     (ok new-principal))) 
 
 (define-private (parse-and-verify-prices-data-sources (ptgm-body (buff 8192)))
-  (let ((cursor-ptgm-body (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 new ptgm-body none))
-        (cursor-num-data-sources (try! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-8 (get next cursor-ptgm-body))))
-        (cursor-data-sources-bytes (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 slice (get next cursor-num-data-sources) none))
+  (let ((cursor-ptgm-body (contract-call? .hk-cursor new ptgm-body none))
+        (cursor-num-data-sources (try! (contract-call? .hk-cursor read-uint-8 (get next cursor-ptgm-body))))
+        (cursor-data-sources-bytes (contract-call? .hk-cursor slice (get next cursor-num-data-sources) none))
         (data-sources (get result (fold parse-data-source cursor-data-sources-bytes { 
           result: (list), 
           cursor: {
@@ -442,9 +442,9 @@
     acc
     (if (is-eq (get index (get cursor acc)) (get next-update-index (get cursor acc)))
       ;; Parse update
-      (let ((buffer (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 new (get bytes acc) (some (get index (get cursor acc)))))
-            (cursor-emitter-chain (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-16 (get next buffer))))
-            (cursor-emitter-address (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-buff-32 (get next cursor-emitter-chain)))))
+      (let ((buffer (contract-call? .hk-cursor new (get bytes acc) (some (get index (get cursor acc)))))
+            (cursor-emitter-chain (unwrap-panic (contract-call? .hk-cursor read-uint-16 (get next buffer))))
+            (cursor-emitter-address (unwrap-panic (contract-call? .hk-cursor read-buff-32 (get next cursor-emitter-chain)))))
         ;; Perform assertions
         {
           cursor: { 

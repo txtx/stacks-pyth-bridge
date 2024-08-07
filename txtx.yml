@@ -1,0 +1,37 @@
+---
+name: stacks-pyth
+id: stacks-pyth
+runbooks:
+  - name: Pyth Deployment
+    id: deploy
+    description: Deploy Pyth protocol on Stacks
+    location: runbooks/deployments/deploy
+    state:
+      file: pyth-deployment.devnet.json
+  - name: Update Price Feed
+    id: update-price
+    description: Update Price Feed
+    location: runbooks/usage/update-price-feed.tx
+environments:
+  devnet:
+    stacks_network_id: devnet
+    stacks_api_url: http://localhost:3999
+    stacks_operator_address: ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC
+    clarinet_manifest_path: ./Clarinet.toml
+    operator_mnemonic: "female adjust gallery certain visit token during great side clown fitness like hurt clip knife warm bench start reunion globe detail dream depend fortune"
+    pyth_oracle_contract: ST3NBRSFKX28FQ2ZJ1MAKX58HKHSDGNV5N7R21XCP.pyth-oracle
+    pyth_storage_contract: ST3NBRSFKX28FQ2ZJ1MAKX58HKHSDGNV5N7R21XCP.pyth-store
+    wormhole_core_contract: ST3NBRSFKX28FQ2ZJ1MAKX58HKHSDGNV5N7R21XCP.wormhole-core
+    pyth_decoder_contract: ST3NBRSFKX28FQ2ZJ1MAKX58HKHSDGNV5N7R21XCP.pyth-pnau-decoder
+  testnet:
+    stacks_network_id: testnet
+    stacks_api_url: https://api.testnet.hiro.so
+    stacks_operator_address: ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC
+    clarinet_manifest_path: ./Clarinet.toml
+    operator_mnemonic: "female adjust gallery certain visit token during great side clown fitness like hurt clip knife warm bench start reunion globe detail dream depend fortune"
+  mainnet:
+    stacks_network_id: mainnet
+    stacks_api_url: https://api.hiro.so
+    stacks_operator_address: SP2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1J5QKA2F
+    clarinet_manifest_path: ./Clarinet.toml
+    operator_mnemonic: "female adjust gallery certain visit token during great side clown fitness like hurt clip knife warm bench start reunion globe detail dream depend fortune"

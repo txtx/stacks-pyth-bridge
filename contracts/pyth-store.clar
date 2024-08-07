@@ -3,7 +3,7 @@
 ;; Check for latest version: https://github.com/hirosystems/stacks-pyth-bridge#latest-version
 ;; Report an issue: https://github.com/hirosystems/stacks-pyth-bridge/issues
 
-(impl-trait .pyth-traits-v1.storage-trait)
+(impl-trait .pyth-traits.storage-trait)
 
 (define-constant ERR_NEWER_PRICE_AVAILABLE (err u5000))
 (define-constant ERR_STALE_PRICE (err u5001))
@@ -37,7 +37,7 @@
   })))
   (let ((successful-updates (map unwrapped-entry (filter only-ok-entry (map write-batch-entry batch-updates)))))
     ;; Ensure that updates are always coming from the right contract
-    (try! (contract-call? .pyth-governance-v1 check-execution-flow contract-caller none))
+    (try! (contract-call? .pyth-governance check-execution-flow contract-caller none))
     ;; Ensure we have at least one entry
     (asserts! (> (len successful-updates) u0) ERR_INVALID_UPDATES)
     (ok successful-updates)))
@@ -52,7 +52,7 @@
       publish-time: uint,
       prev-publish-time: uint,
     }))
-    (let ((stale-price-threshold (contract-call? .pyth-governance-v1 get-stale-price-threshold))
+    (let ((stale-price-threshold (contract-call? .pyth-governance get-stale-price-threshold))
           (latest-bitcoin-timestamp (unwrap! (get-block-info? time (- block-height u1)) ERR_STALE_PRICE)))
       ;; Ensure that we have not processed a newer price
       (asserts! (is-price-update-more-recent (get price-identifier entry) (get publish-time entry)) ERR_NEWER_PRICE_AVAILABLE)

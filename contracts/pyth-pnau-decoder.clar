@@ -4,8 +4,8 @@
 ;; Report an issue: https://github.com/hirosystems/stacks-pyth-bridge/issues
 
 ;;;; Traits
-(impl-trait .pyth-traits-v1.decoder-trait)
-(use-trait wormhole-core-trait .wormhole-traits-v1.core-trait)
+(impl-trait .pyth-traits.decoder-trait)
+(use-trait wormhole-core-trait .wormhole-traits.core-trait)
 
 ;;;; Constants
 
@@ -47,7 +47,7 @@
 (define-public (decode-and-verify-price-feeds (pnau-bytes (buff 8192)) (wormhole-core-address <wormhole-core-trait>))
   (begin
     ;; Check execution flow
-    (try! (contract-call? .pyth-governance-v1 check-execution-flow contract-caller none))
+    (try! (contract-call? .pyth-governance check-execution-flow contract-caller none))
     ;; Proceed to update
     (let ((prices-updates (try! (decode-pnau-price-update pnau-bytes wormhole-core-address))))
       (ok prices-updates))))
@@ -56,15 +56,15 @@
 ;; #[filter(pnau-bytes, wormhole-core-address)]
 (define-private (decode-pnau-price-update (pnau-bytes (buff 8192)) (wormhole-core-address <wormhole-core-trait>))
   (let ((cursor-pnau-header (try! (parse-pnau-header pnau-bytes)))
-        (cursor-pnau-vaa-size (try! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-16 (get next cursor-pnau-header))))
-        (cursor-pnau-vaa (try! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-buff-8192-max (get next cursor-pnau-vaa-size) (some (get value cursor-pnau-vaa-size)))))
+        (cursor-pnau-vaa-size (try! (contract-call? .hk-cursor read-uint-16 (get next cursor-pnau-header))))
+        (cursor-pnau-vaa (try! (contract-call? .hk-cursor read-buff-8192-max (get next cursor-pnau-vaa-size) (some (get value cursor-pnau-vaa-size)))))
         (vaa (try! (contract-call? wormhole-core-address parse-and-verify-vaa (get value cursor-pnau-vaa))))
         (cursor-merkle-root-data (try! (parse-merkle-root-data-from-vaa-payload (get payload vaa))))
         (decoded-prices-updates (try! (parse-and-verify-prices-updates 
-          (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 slice (get next cursor-pnau-vaa) none)
+          (contract-call? .hk-cursor slice (get next cursor-pnau-vaa) none)
           (get merkle-root-hash (get value cursor-merkle-root-data)))))
         (prices-updates (map cast-decoded-price decoded-prices-updates))
-        (authorized-prices-data-sources (contract-call? .pyth-governance-v1 get-authorized-prices-data-sources)))
+        (authorized-prices-data-sources (contract-call? .pyth-governance get-authorized-prices-data-sources)))
     ;; Ensure that update was published by an data source authorized by governance
     (unwrap! (index-of? 
         authorized-prices-data-sources 
@@ -73,15 +73,15 @@
     (ok prices-updates)))
 
 (define-private (parse-merkle-root-data-from-vaa-payload (payload-vaa-bytes (buff 8192)))
-  (let ((cursor-payload-type (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-buff-4 { bytes: payload-vaa-bytes, pos: u0 }) 
+  (let ((cursor-payload-type (unwrap! (contract-call? .hk-cursor read-buff-4 { bytes: payload-vaa-bytes, pos: u0 }) 
           ERR_INVALID_AUWV))
-        (cursor-wh-update-type (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-8 (get next cursor-payload-type)) 
+        (cursor-wh-update-type (unwrap! (contract-call? .hk-cursor read-uint-8 (get next cursor-payload-type)) 
           ERR_INVALID_AUWV))
-        (cursor-merkle-root-slot (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-64 (get next cursor-wh-update-type)) 
+        (cursor-merkle-root-slot (unwrap! (contract-call? .hk-cursor read-uint-64 (get next cursor-wh-update-type)) 
           ERR_INVALID_AUWV))
-        (cursor-merkle-root-ring-size (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-32 (get next cursor-merkle-root-slot)) 
+        (cursor-merkle-root-ring-size (unwrap! (contract-call? .hk-cursor read-uint-32 (get next cursor-merkle-root-slot)) 
           ERR_INVALID_AUWV))
-        (cursor-merkle-root-hash (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-buff-20 (get next cursor-merkle-root-ring-size)) 
+        (cursor-merkle-root-hash (unwrap! (contract-call? .hk-cursor read-buff-20 (get next cursor-merkle-root-ring-size)) 
           ERR_INVALID_AUWV)))
     ;; Check payload type
     (asserts! (is-eq (get value cursor-payload-type) AUWV_MAGIC) ERR_MAGIC_BYTES)
@@ -98,15 +98,15 @@
     })))
 
 (define-private (parse-pnau-header (pf-bytes (buff 8192)))
-  (let ((cursor-magic (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-buff-4 { bytes: pf-bytes, pos: u0 }) 
+  (let ((cursor-magic (unwrap! (contract-call? .hk-cursor read-buff-4 { bytes: pf-bytes, pos: u0 }) 
           ERR_MAGIC_BYTES))
-        (cursor-version-maj (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-8 (get next cursor-magic)) 
+        (cursor-version-maj (unwrap! (contract-call? .hk-cursor read-uint-8 (get next cursor-magic)) 
           ERR_VERSION_MAJ))
-        (cursor-version-min (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-8 (get next cursor-version-maj)) 
+        (cursor-version-min (unwrap! (contract-call? .hk-cursor read-uint-8 (get next cursor-version-maj)) 
           ERR_VERSION_MIN))
-        (cursor-header-trailing-size (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-8 (get next cursor-version-min)) 
+        (cursor-header-trailing-size (unwrap! (contract-call? .hk-cursor read-uint-8 (get next cursor-version-min)) 
           ERR_HEADER_TRAILING_SIZE))
-        (cursor-proof-type (unwrap! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-8 {
+        (cursor-proof-type (unwrap! (contract-call? .hk-cursor read-uint-8 {
             bytes: pf-bytes,
             pos: (+ (get pos (get next cursor-header-trailing-size)) (get value cursor-header-trailing-size))})
           ERR_PROOF_TYPE)))
@@ -130,8 +130,8 @@
     })))
 
 (define-private (parse-and-verify-prices-updates (bytes (buff 8192)) (merkle-root-hash (buff 20)))
-  (let ((cursor-num-updates (try! (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-8 { bytes: bytes, pos: u0 })))
-        (cursor-updates-bytes (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 slice (get next cursor-num-updates) none))
+  (let ((cursor-num-updates (try! (contract-call? .hk-cursor read-uint-8 { bytes: bytes, pos: u0 })))
+        (cursor-updates-bytes (contract-call? .hk-cursor slice (get next cursor-num-updates) none))
         (updates (get result (fold parse-price-info-and-proof cursor-updates-bytes { 
           result: (list), 
           cursor: {
@@ -170,7 +170,7 @@
     { 
       merkle-root-hash: (get merkle-root-hash acc),
       result: (and (get result acc)
-        (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-merkle-tree-keccak160-v1 check-proof 
+        (contract-call? .hk-merkle-tree-keccak160 check-proof 
           (get merkle-root-hash acc) 
           (get leaf-bytes entry) 
           (get proof entry)))
@@ -202,21 +202,21 @@
     acc
     (if (is-eq (get index (get cursor acc)) (get next-update-index (get cursor acc)))
       ;; Parse update
-      (let ((cursor-update (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 new (get bytes acc) (some (get index (get cursor acc)))))
-            (cursor-message-size (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-16 (get next cursor-update))))
-            (cursor-message-type (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-8 (get next cursor-message-size))))
-            (cursor-price-identifier (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-buff-32 (get next cursor-message-type))))
-            (cursor-price (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-int-64 (get next cursor-price-identifier))))
-            (cursor-conf (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-64 (get next cursor-price))))
-            (cursor-expo (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-int-32 (get next cursor-conf))))
-            (cursor-publish-time (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-64 (get next cursor-expo))))
-            (cursor-prev-publish-time (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-64 (get next cursor-publish-time))))
-            (cursor-ema-price (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-int-64 (get next cursor-prev-publish-time))))
-            (cursor-ema-conf (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-64 (get next cursor-ema-price))))
-            (cursor-proof (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 advance (get next cursor-message-size) (get value cursor-message-size)))
-            (cursor-proof-size (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-uint-8 cursor-proof)))
-            (proof-bytes (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 slice (get next cursor-proof-size) (some (* u20 (get value cursor-proof-size)))))
-            (leaf-bytes (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 slice (get next cursor-message-size) (some (get value cursor-message-size))))
+      (let ((cursor-update (contract-call? .hk-cursor new (get bytes acc) (some (get index (get cursor acc)))))
+            (cursor-message-size (unwrap-panic (contract-call? .hk-cursor read-uint-16 (get next cursor-update))))
+            (cursor-message-type (unwrap-panic (contract-call? .hk-cursor read-uint-8 (get next cursor-message-size))))
+            (cursor-price-identifier (unwrap-panic (contract-call? .hk-cursor read-buff-32 (get next cursor-message-type))))
+            (cursor-price (unwrap-panic (contract-call? .hk-cursor read-int-64 (get next cursor-price-identifier))))
+            (cursor-conf (unwrap-panic (contract-call? .hk-cursor read-uint-64 (get next cursor-price))))
+            (cursor-expo (unwrap-panic (contract-call? .hk-cursor read-int-32 (get next cursor-conf))))
+            (cursor-publish-time (unwrap-panic (contract-call? .hk-cursor read-uint-64 (get next cursor-expo))))
+            (cursor-prev-publish-time (unwrap-panic (contract-call? .hk-cursor read-uint-64 (get next cursor-publish-time))))
+            (cursor-ema-price (unwrap-panic (contract-call? .hk-cursor read-int-64 (get next cursor-prev-publish-time))))
+            (cursor-ema-conf (unwrap-panic (contract-call? .hk-cursor read-uint-64 (get next cursor-ema-price))))
+            (cursor-proof (contract-call? .hk-cursor advance (get next cursor-message-size) (get value cursor-message-size)))
+            (cursor-proof-size (unwrap-panic (contract-call? .hk-cursor read-uint-8 cursor-proof)))
+            (proof-bytes (contract-call? .hk-cursor slice (get next cursor-proof-size) (some (* u20 (get value cursor-proof-size)))))
+            (leaf-bytes (contract-call? .hk-cursor slice (get next cursor-message-size) (some (get value cursor-message-size))))
             (proof (get result (fold parse-proof proof-bytes { 
               result: (list),
               cursor: {
@@ -280,8 +280,8 @@
     acc
     (if (is-eq (get index (get cursor acc)) (get next-update-index (get cursor acc)))
       ;; Parse update
-      (let ((cursor-hash (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 new (get bytes acc) (some (get index (get cursor acc)))))
-            (hash (get value (unwrap-panic (contract-call? 'SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2 read-buff-20 (get next cursor-hash))))))
+      (let ((cursor-hash (contract-call? .hk-cursor new (get bytes acc) (some (get index (get cursor acc)))))
+            (hash (get value (unwrap-panic (contract-call? .hk-cursor read-buff-20 (get next cursor-hash))))))
         ;; Perform assertions
         {
           cursor: { 
