@@ -33,7 +33,7 @@ input "pyth_hermes_pnau_update" {
     value = base64_decode(index(jq(action.fetch_hermes_price.response_body, ".[0].vaa"), 0))
 }
 
-action "update_price" "stacks::send_contract_call" {
+action "update_price" "stacks::call_contract" {
     // Description of the transaction
     description = "Verify and Update Price Feed"
     // The address and identifier of the contract to invoke.
