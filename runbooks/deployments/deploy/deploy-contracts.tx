@@ -69,6 +69,7 @@ action "hk_cursor_deployment" "stacks::deploy_contract" {
     description = "Deploy hk-cursor contract"
     contract = stacks::get_contract_from_clarinet_project(env.clarinet_manifest_path, "hk-cursor")
     signer = wallet.operator
+    fee_strategy = "high"
 }
 
 action "hk_merkle_tree_keccak160_deployment" "stacks::deploy_contract" {
