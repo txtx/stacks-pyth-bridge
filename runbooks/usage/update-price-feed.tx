@@ -1,15 +1,15 @@
 runtime "addon::stacks" {
-  defaults {
-    network_id = env.stacks_network_id
-    rpc_api_url = env.stacks_api_url
-  }
+    defaults {
+        network_id = env.stacks_network_id
+        rpc_api_url = env.stacks_api_url
+    }
 }
 
-// wallet "operator" "stacks::connect" {
-//   expected_address = "ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNCc"
+// signer "operator" "stacks::connect" {
+//     expected_address = env.stacks_operator_address
 // }
 
-wallet "operator" "stacks::mnemonic" {
+signer "operator" "stacks::mnemonic" {
     mnemonic = env.operator_mnemonic
 }
 
@@ -50,7 +50,7 @@ action "update_price" "stacks::call_contract" {
         }
     ]
     // A reference to a wallet construct, which will be used to sign the transaction payload.
-    signer = wallet.operator
+    signer = signer.operator
     // The post conditions to include to the transaction.
     // post_conditions = 
 }

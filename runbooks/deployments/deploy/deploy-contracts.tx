@@ -5,14 +5,18 @@ runtime "addon::stacks" {
     }
 }
 
-wallet "operator" "stacks::mnemonic" {
+signer "operator" "stacks::mnemonic" {
     mnemonic = env.operator_mnemonic
 }
+
+// signer "operator" "stacks::connect" {
+//   expected_address = "ST245ZCDQ9ZJWR5GMH53F95P8SGBA1TDGDG1C5813"
+// }
 
 action "wormhole_traits_deployment" "stacks::deploy_contract" {
     description = "Deploy wormhole-traits contract"
     contract = stacks::get_contract_from_clarinet_project(env.clarinet_manifest_path, "wormhole-traits")
-    signer = wallet.operator
+    signer = signer.operator
     fee_strategy = "high"
     confirmations = 1
 }
@@ -20,7 +24,7 @@ action "wormhole_traits_deployment" "stacks::deploy_contract" {
 action "pyth_trait_deployment" "stacks::deploy_contract" {
     description = "Deploy pyth-traits contract"
     contract = stacks::get_contract_from_clarinet_project(env.clarinet_manifest_path, "pyth-traits")
-    signer = wallet.operator
+    signer = signer.operator
     fee_strategy = "high"
     depends_on = [action.wormhole_core_deployment]
 }
@@ -28,7 +32,8 @@ action "pyth_trait_deployment" "stacks::deploy_contract" {
 action "pyth_governance_deployment" "stacks::deploy_contract" {
     description = "Deploy pyth-governance contract"
     contract = stacks::get_contract_from_clarinet_project(env.clarinet_manifest_path, "pyth-governance")
-    signer = wallet.operator
+    signer = signer.operator
+    contract_name_update = "pyth-governance-v2"
     fee_strategy = "high"
     depends_on = [action.pyth_trait_deployment, action.hk_cursor_deployment]
 }
@@ -36,7 +41,8 @@ action "pyth_governance_deployment" "stacks::deploy_contract" {
 action "pyth_oracle_deployment" "stacks::deploy_contract" {
     description = "Deploy pyth-oracle contract"
     contract = stacks::get_contract_from_clarinet_project(env.clarinet_manifest_path, "pyth-oracle")
-    signer = wallet.operator
+    signer = signer.operator
+    // contract_name_update = "pyth-oracle-v2"
     fee_strategy = "high"
     depends_on = [action.pyth_trait_deployment, action.pyth_governance_deployment]
 }
@@ -44,7 +50,7 @@ action "pyth_oracle_deployment" "stacks::deploy_contract" {
 action "pyth_pnau_decoder_deployment" "stacks::deploy_contract" {
     description = "Deploy pyth-pnau-decoder contract"
     contract = stacks::get_contract_from_clarinet_project(env.clarinet_manifest_path, "pyth-pnau-decoder")
-    signer = wallet.operator
+    signer = signer.operator
     fee_strategy = "high"
     depends_on = [action.pyth_trait_deployment, action.hk_merkle_tree_keccak160_deployment, action.pyth_governance_deployment]
 }
@@ -52,7 +58,7 @@ action "pyth_pnau_decoder_deployment" "stacks::deploy_contract" {
 action "pyth_store_deployment" "stacks::deploy_contract" {
     description = "Deploy pyth-store contract"
     contract = stacks::get_contract_from_clarinet_project(env.clarinet_manifest_path, "pyth-store")
-    signer = wallet.operator
+    signer = signer.operator
     fee_strategy = "high"
     depends_on = [action.pyth_trait_deployment, action.pyth_governance_deployment]
 }
@@ -60,7 +66,7 @@ action "pyth_store_deployment" "stacks::deploy_contract" {
 action "wormhole_core_deployment" "stacks::deploy_contract" {
     description = "Deploy wormhole-core contract"
     contract = stacks::get_contract_from_clarinet_project(env.clarinet_manifest_path, "wormhole-core")
-    signer = wallet.operator
+    signer = signer.operator
     fee_strategy = "high"
     depends_on = [action.wormhole_traits_deployment, action.hk_cursor_deployment]
 }
@@ -68,7 +74,7 @@ action "wormhole_core_deployment" "stacks::deploy_contract" {
 action "hk_cursor_deployment" "stacks::deploy_contract" {
     description = "Deploy hk-cursor contract"
     contract = stacks::get_contract_from_clarinet_project(env.clarinet_manifest_path, "hk-cursor")
-    signer = wallet.operator
+    signer = signer.operator
     fee_strategy = "high"
 }
 
@@ -76,5 +82,5 @@ action "hk_merkle_tree_keccak160_deployment" "stacks::deploy_contract" {
     description = "Deploy hk-merkle-tree-keccak160 contract"
     contract = stacks::get_contract_from_clarinet_project(env.clarinet_manifest_path, "hk-merkle-tree-keccak160")
     fee_strategy = "high"
-    signer = wallet.operator
+    signer = signer.operator
 }

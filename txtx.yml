@@ -18,6 +18,7 @@ environments:
     stacks_api_url: http://localhost:3999
     stacks_operator_address: ST2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1HR05NNC
     clarinet_manifest_path: ./Clarinet.toml
+    # operator_mnemonic: "prevent gallery kind limb income control noise together echo rival record wedding sense uncover school version force bleak nuclear include danger skirt enact arrow"
     operator_mnemonic: "female adjust gallery certain visit token during great side clown fitness like hurt clip knife warm bench start reunion globe detail dream depend fortune"
     pyth_oracle_contract: ST3NBRSFKX28FQ2ZJ1MAKX58HKHSDGNV5N7R21XCP.pyth-oracle
     pyth_storage_contract: ST3NBRSFKX28FQ2ZJ1MAKX58HKHSDGNV5N7R21XCP.pyth-store
@@ -34,4 +35,7 @@ environments:
     stacks_api_url: https://api.hiro.so
     stacks_operator_address: SP2JHG361ZXG51QTKY2NQCVBPPRRE2KZB1J5QKA2F
     clarinet_manifest_path: ./Clarinet.toml
-    operator_mnemonic: "female adjust gallery certain visit token during great side clown fitness like hurt clip knife warm bench start reunion globe detail dream depend fortune"
+    pyth_oracle_contract: SP2T5JKWWP3FYYX4YRK8GK5BG2YCNGEAEY2P2PKN0.pyth-oracle-v2
+    pyth_storage_contract: SP2T5JKWWP3FYYX4YRK8GK5BG2YCNGEAEY2P2PKN0.pyth-store-v1
+    wormhole_core_contract: SP2T5JKWWP3FYYX4YRK8GK5BG2YCNGEAEY2P2PKN0.wormhole-core-v2
+    pyth_decoder_contract: SP2T5JKWWP3FYYX4YRK8GK5BG2YCNGEAEY2P2PKN0.pyth-pnau-decoder-v1

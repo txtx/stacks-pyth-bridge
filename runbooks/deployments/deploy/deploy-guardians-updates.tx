@@ -26,7 +26,7 @@ action "update_guardian_set_1" "stacks::call_contract" {
     // The function arguments for the contract call.
     function_args = [input.update_guardian_set_1_vaa, input.guardian_set_1]
     // A reference to a wallet construct, which will be used to sign the transaction payload.
-    signer = wallet.operator
+    signer = signer.operator
     fee = 20000
 }
 
@@ -38,7 +38,7 @@ action "update_guardian_set_2" "stacks::call_contract" {
     // The function arguments for the contract call.
     function_args = [input.update_guardian_set_2_vaa, input.guardian_set_2]
     // A reference to a wallet construct, which will be used to sign the transaction payload.
-    signer = wallet.operator
+    signer = signer.operator
     depends_on = [action.update_guardian_set_1]
     fee = 20000
 }
@@ -51,7 +51,7 @@ action "update_guardian_set_3" "stacks::call_contract" {
     // The function arguments for the contract call.
     function_args = [input.update_guardian_set_3_vaa, input.guardian_set_3]
     // A reference to a wallet construct, which will be used to sign the transaction payload.
-    signer = wallet.operator
+    signer = signer.operator
     depends_on = [action.update_guardian_set_2]
     fee = 20000
 }
@@ -64,7 +64,7 @@ action "update_guardian_set_4" "stacks::call_contract" {
     // The function arguments for the contract call.
     function_args = [input.update_guardian_set_4_vaa, input.guardian_set_4]
     // A reference to a wallet construct, which will be used to sign the transaction payload.
-    signer = wallet.operator
+    signer = signer.operator
     depends_on = [action.update_guardian_set_3]
     fee = 20000
 }
